@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Storage Service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="file"], input[type="submit"] {
+            margin: 10px 0;
+        }
+        .file-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+        .file-list li {
+            list-style: none;
+            padding: 8px;
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .file-list a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+        .file-list a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Online File Storage</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <input type="file" id="fileInput" required><br>
+            <input type="submit" value="Upload File">
+        </form>
+
+        <h2>Uploaded Files</h2>
+        <ul id="fileList" class="file-list">
+            <!-- File links will be dynamically inserted here -->
+        </ul>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    alert('File uploaded successfully!');
+                    loadFiles();
+                } else {
+                    alert('Failed to upload file.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error uploading file.');
+            }
+        });
+
+        async function loadFiles() {
+            fileList.innerHTML = '';
+            try {
+                const response = await fetch('/files');
+                const files = await response.json();
+
+                files.forEach(file => {
+                    const li = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = `/files/${file}`;
+                    link.textContent = file;
+                    link.download = file;
+                    li.appendChild(link);
+                    fileList.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error loading files:', error);
+            }
+        }
+
+        // Load files on page load
+        window.onload = loadFiles;
+    </script>
+</body>
+</html>
